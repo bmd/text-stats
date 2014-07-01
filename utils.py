@@ -37,7 +37,7 @@ def test_stop_word_usage(tokens, complete_counts):
 	actuals = [x[2] for x in target_words]
 	expecteds = [x[3] for x in target_words]
 
-	return chisquare(f_obs = actuals, f_exp = expecteds, ddof = 1)
+	return chisquare(f_obs = actuals, f_exp = expecteds)
 
 
 
