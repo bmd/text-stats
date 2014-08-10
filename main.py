@@ -1,36 +1,104 @@
 from __future__ import division
 
-import utils as u
+from utils import *
 import glob
 import os
 from collections import Counter
 import sys
 
 import numpy as np
+import numpy.random as npr
 import scipy.stats
 
+def test_stop_word_combined(tokens, sample_size, method_flag=0):
+    if method_flag == 0: # bag of words
+        sc = Counter(npr.choice(tokens, int(len(tokens)*sample_size), replace=False, p=None))
+    elif method_flag == 1: # contiguous chunk
+        chunk = int(sample_size * len(tokens))
+        pos = npr.randint(len(tokens))
+        # handle wrapping around to the beginning of the text if needed
+        if (pos + chunk) > len(tokens):
+            sc = Counter(tokens[pos:] + tokens[0:((pos+chunk) - len(tokens))])
+        else:
+            sc = Counter(tokens[pos:(pos+chunk)])
+    
+    # same across all methods?
+    fc = [list(t) for t in Counter(tokens).most_common(20)]
+    a, e = [], []
+    for word, frequency in fc:
+        a.append(sc[word]) if word in sc else a.append(0)
+        e.append(frequency/(1/sample_size))
+    return chisquare(f_obs=a, f_exp=e)
+
+def test_stop_word_usage(tokens, sample_size):
+    sc = Counter(npr.choice(tokens, int(len(tokens)*sample_size), replace=False, p=None))
+    fc = [list(t) for t in Counter(tokens).most_common(20)]
+    a, e = [], []
+    for word, frequency in fc:
+        a.append(sc[word]) if word in sc else a.append(0)
+        e.append(frequency/(1/sample_size))
+    return chisquare(f_obs=a, f_exp=e)
+
+def test_contiguous_sample(tokens, sample_size):
+    chunk = int(sample_size * len(tokens))
+    pos = npr.randint(len(tokens))
+    # handle wrapping around to the beginning of the text if needed
+    if (pos + chunk) > len(tokens):
+        sc = Counter(tokens[pos:] + tokens[0:((pos+chunk) - len(tokens))])
+    else:
+        sc = Counter(tokens[pos:(pos+chunk)])
+    fc = [list(t) for t in Counter(tokens).most_common(20)]
+
+    a, e = [], []
+
+    for word, frequency in fc:
+        a.append(sc[word]) if word in sc else a.append(0)
+        e.append(frequency/(1/sample_size))
+
+    for x in range(len(a)):
+        print a[x], ':', e[x]
+    sys.exit()
+    return chisquare(f_obs=a, f_exp=e)
+
+def summarize_results(r):
+    print 'Mean p-value: {:.3f}'.format(np.mean(r))
+    print '90-percent CI: ({:.2f}, {:.2f})'.format(max(np.mean(r)-(1.67*np.std(r)),0), 
+                                                   min(np.mean(r)+(1.67*np.std(r)),1)
+                                                   )   
+
+
 if __name__ == '__main__':
-	files_to_process = glob.glob(os.path.join('texts', '*.txt'))
-	print 'Found {} files...'.format(len(files_to_process))
-	
-	for fname in files_to_process:
-		print 'Running analysis on {}'.format(fname)
-		# tokenize the file
-		tokens = u.tokenize(u.depunctuate(u.ingest(fname)))
-		chunk_size = len(tokens) // 2		
-		total_word_counts = Counter(tokens)
+    files_to_process = glob.glob(os.path.join('texts', '*.txt'))
+    print 'Found {} files...'.format(len(files_to_process))
+    args = read_configuration_options()
 
-		# bag of words
-		bow_results = []
-		for x in xrange(int(sys.argv[1])):
-			if x % 100 == 0 and x != 0: print '\r{}'.format(x)
-			# randomly sample 50% of the words
-			sample = np.random.choice(tokens, len(tokens)//2, replace=False, p=None)
-			bow_results.append(u.test_stop_word_usage(sample, total_word_counts)[1])
-		# contiguous chunks
+    for fname in files_to_process:
+        print 'Testing File: {}'.format(fname)
+        # tokenize the file
+        tokens = tokenize(depunctuate(ingest(fname)))
+        print 'Interpreted {} word-tokens'.format(len(tokens))
+        chunk_size = int(len(tokens) * args.sample)      
+        print 'Sample based on {} words ({:.0%} of full text)'.format(chunk_size, args.sample)
+        
+        # test bag of words method
+        print '-- Testing \'bag-of-words\' method --'
+        bow_results = []
+        for x in xrange(int(args.iterations)):
+            if x % 100 == 0 and x != 0: print '\r{}'.format(x)
+            bow_results.append(test_stop_word_combined(tokens, args.sample, method_flag=0)[1])
+        summarize_results(bow_results)
+        
+        # test contiguous samples method
+        print '\n-- Testing \'contiguous samples\' method --'
+        con_results = []
+        for x in xrange(int(args.iterations)):
+            if x % 100 == 0 and x != 0: print '\r{}'.format(x)
+            con_results.append(test_stop_word_combined(tokens, args.sample, method_flag=1)[1])
+        summarize_results(con_results)
+        #with open(fname.replace('.txt','') + '_result.csv', 'w') as outf:
+        #    hist = np.histogram(bow_results, bins=25)
+        #    outf.write('Bins,Counts\n')
+        #    for i in xrange(len(hist[0])):
+        #        outf.write('{},{}\n'.format(hist[1][i], hist[0][i]))
 
-		with open(fname.replace('.txt','') + '_result.csv', 'w') as outf:
-			hist = np.histogram(bow_results, bins=25)
-			for i in xrange(len(hist[0])):
-				outf.write('{},{}\n'.format(hist[0][i], hist[1][i]))
 
