@@ -1,2 +1,10 @@
+<<<<<<< HEAD
 .dropbox
 Icon
+=======
+
+.dropbox
+*.pyc
+.idea
+Icon
+>>>>>>> FETCH_HEAD
