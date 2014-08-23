@@ -1,80 +1,46 @@
 from __future__ import division
 import string as s
-from scipy.stats import chisquare
-from collections import Counter
-import argparse
-import sys
+import numpy as np
 
-def read_configuration_options():
-    """
-    Set up and validate command line arguments
-    """
-    parser = argparse.ArgumentParser()
-    #analysis_type = parser.add_mutually_exclusive_group(required = True)
-    parser.add_argument(
-        'iterations', 
-        type = str, 
-        help = 'Number of times to run the simulation for each text.'
-    )
-    parser.add_argument(
-        'sample', 
-        type = float, 
-        help = 'Percent of text to sample'
-    )
-    #analysis_type.add_argument(
-    #    '--bag-of-words', 
-    #    action = 'store_true', 
-    #    help = 'Randomly sample words'
-    #)
-    #analysis_type.add_argument(
-    #    '--blocks', 
-    #    action = 'store_true', 
-    #    help = 'Sample words as contiguous blocks'
-    #)
-    return parser.parse_args()
 
 def ingest(fname):
-	with open(fname, 'rU') as inf:
-		return inf.read().replace('\n','')
+    with open(fname, 'rU') as inf:
+        return inf.read().replace('\n', '')
+
 
 def depunctuate(text):
-	block = ''
-	for char in text:
-		if char not in s.punctuation:
-			block += char
-	return block
-
-def tokenize(str):
-	return [x.lower() for x in str.split(' ') if x != '']
-
-def test_stop_word_usage_against_sample(sample_1, sample_2):
-	s1_common = Counter(sample_1).most_common(20)
-	s2_common = Counter(sample_2).most_common(20)
-	# interleve results
-	combined = {}
-
-	for (word, frequency) in s1_common:
-		combined[word] = [word, frequency, 0]
-	for (word, frequency) in s2_common:
-		if word in combined:
-			combined[word][2] = frequency
-		else:
-			combined[word] = [word, 0, frequency]
+    block = ''
+    for char in text:
+        if char not in s.punctuation:
+            block += char
+    return block
 
 
-	pairs = [x for x in combined.values() if (x[1] != 0 and x[2] != 0)]
-	actuals = [x[1] for x in pairs]
-	expecteds = [x[2] for x in pairs]
-
-	return chisquare(f_obs = actuals, f_exp = expecteds)
-	
+def tokenize(s):
+    return [x.lower() for x in s.split(' ') if x != '']
 
 
-	#for [word, frequency] in s1_common:
+def write_result(test_statistics, outfname):
+    with open(outfname, 'wb') as outf:
+        for i, t in enumerate(test_statistics):
+            outf.write('{},{}\n'.format(i, t))
 
 
-
-
-
-
-
+def summarize_results(r, statistic, pval=False):
+    m, s = np.mean(r), np.std(r)
+    print 'Mean {} value: {:.3f}'.format(statistic, m)
+    # print significance indicators only if p values
+    if pval:
+        if m <= 0.01:
+            print '***'
+        elif m <= 0.05:
+            print '**'
+        elif m <= 0.10:
+            print '*'
+        print '90-percent CI: ({:.2f}, {:.2f})'.format(
+            max(m-(1.67*s), 0), min(m+(1.67*s), 1)
+        )
+    else:
+        print '90-percent CI: ({:.2f}, {:.2f})'.format(
+            m-(1.67*s), m+(1.67*s)
+        )
