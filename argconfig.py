@@ -16,5 +16,9 @@ def read_configuration_options():
         type=float,
         help='Percent of text to sample'
     )
-
+    parser.add_argument(
+        '--absolute',
+        action='store_true',
+        help='Whether sample is an absolute number of words to sample or a percentage'
+    )
     return parser.parse_args()

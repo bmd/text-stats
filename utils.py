@@ -1,6 +1,12 @@
 from __future__ import division
 import string as s
 import numpy as np
+import pandas as pd
+
+
+def write_output(outfname, data):
+    df = pd.DataFrame(data[1:], columns=data[0])
+    df.to_csv('test.csv')
 
 
 def ingest(fname):
@@ -26,11 +32,11 @@ def write_result(test_statistics, outfname):
             outf.write('{},{}\n'.format(i, t))
 
 
-def summarize_results(r, statistic, pval=False):
+def summarize_results(r, statistic, p_sig=False, ):
     m, s = np.mean(r), np.std(r)
     print 'Mean {} value: {:.3f}'.format(statistic, m)
     # print significance indicators only if p values
-    if pval:
+    if p_sig:
         if m <= 0.01:
             print '***'
         elif m <= 0.05:
@@ -42,5 +48,5 @@ def summarize_results(r, statistic, pval=False):
         )
     else:
         print '90-percent CI: ({:.2f}, {:.2f})'.format(
-            m-(1.67*s), m+(1.67*s)
+            max(m-(1.67*s),0), m+(1.67*s)
         )
