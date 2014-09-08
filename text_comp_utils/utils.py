@@ -15,9 +15,10 @@ def timestamped(fname, fmt='%Y%m%d-%H%M%S_{fname}'):
     """
     return dt.datetime.now().strftime(fmt).format(fname=fname)
 
+
 def write_output(data):
     df = pd.DataFrame(data[1:], columns=data[0])
-    df.to_csv(os.path.join('outputs', timestamped('test.csv')))
+    df.to_csv(os.path.join('outputs', timestamped('comparison_results.csv')))
 
 
 def ingest(fname):
@@ -31,12 +32,6 @@ def depunctuate(text):
 
 def tokenize(s):
     return [x.lower() for x in s.split(' ') if x != '']
-
-
-def write_result(test_statistics, outfname):
-    with open(outfname, 'wb') as outf:
-        for i, t in enumerate(test_statistics):
-            outf.write('{},{}\n'.format(i, t))
 
 
 def summarize_results(r, statistic, p_sig=False):
