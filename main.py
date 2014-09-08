@@ -1,19 +1,21 @@
 from __future__ import division
 
-from utils import *
-from argconfig import *
-from usage_tests import *
 import glob
 import os
+
 import pyprind
-import sys
 import pandas as pd
+
+from text_comp_utils.utils import *
+from text_comp_utils.argconfig import *
+from text_comp_utils.usage_tests import *
 
 
 def main():
+    args = read_configuration_options()
+
     files_to_process = glob.glob(os.path.join('texts', '*.txt'))
     print 'Found {} files...'.format(len(files_to_process))
-    args = read_configuration_options()
 
     out_array = [[] for x in range(int(args.iterations)+1)]
 
@@ -55,5 +57,12 @@ def main():
        # summarize_results(mul_bags, 'Chi2')
        # write_result(mul_bags, fname.replace('.txt', '') + '_mulbow_result.csv')
     write_output('test.txt',out_array)
+    #data = out_array
+    #df = pd.DataFrame(data[1:], columns=data[0])
+    #import matplotlib.pyplot as plt
+    #pd.options.display.mpl_style = 'default'
+    #plt.figure()
+    #df.diff().hist(color='k',alpha=.5, bins=50)
+    #df.plot()
 if __name__ == '__main__':
     main()
