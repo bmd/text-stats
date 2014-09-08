@@ -2,11 +2,21 @@ from __future__ import division
 import string as s
 import numpy as np
 import pandas as pd
+import datetime as dt
 
+def timestamped(fname, fmt='%Y-%m-%d-%H-%M-%S_{fname}'):
+    """
+    Return a timestamped filename, quite elegantly
+
+    Reference
+    ---------
+    http://stackoverflow.com/a/5215012
+    """
+    return dt.datetime.now().strftime(fmt).format(fname=fname)
 
 def write_output(outfname, data):
     df = pd.DataFrame(data[1:], columns=data[0])
-    df.to_csv('test.csv')
+    df.to_csv(timestamped('test.csv'))
 
 
 def ingest(fname):
@@ -15,12 +25,12 @@ def ingest(fname):
 
 
 def depunctuate(text):
-    block = ''
-    for char in text:
-        if char not in s.punctuation:
-            block += char
-    return block
-
+    #block = ''
+    #for char in text:
+    #    if char not in s.punctuation:
+    #        block += char
+    #return block
+    return ''.join([c for c in text if c not in s.punctuation])
 
 def tokenize(s):
     return [x.lower() for x in s.split(' ') if x != '']

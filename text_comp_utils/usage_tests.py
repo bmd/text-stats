@@ -21,8 +21,6 @@ def compare_stop_words_against_other_texts(sample_tokens, comparison_tokens):
             pass
 
 
-
-
 def compare_stop_word_usage(tokens, sample_size, absolute, method=0):
     """
     :param tokens: Num
