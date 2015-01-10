@@ -8,4 +8,5 @@ Icon
 *.pyc
 .idea
 Icon
+outputs/*
 >>>>>>> FETCH_HEAD
