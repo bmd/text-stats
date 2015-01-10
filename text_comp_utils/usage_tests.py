@@ -11,24 +11,16 @@ def compare_stop_words_against_other_texts(sample_tokens, comparison_tokens, sam
         sample_count = int(round(len(comparison_tokens) * sample_size))
     elif len(comparison_tokens) > len(sample_tokens):
         sample_count = int(round(len(sample_tokens) * sample_size))
-
     sc = Counter(npr.choice(sample_tokens, sample_count, replace=False, p=None)).most_common()
     cc = Counter(npr.choice(comparison_tokens, sample_count, replace=False, p=None))
-
-    #sc = Counter(sample_tokens).most_common()
-    #cc = Counter(comparison_tokens)
-
     len_ratio = len(sc) / len(cc)
-
     combined = {}
-    ct = 0
-    for word, frequency in sc:
+    ct = 0    for word, frequency in sc:
         if word in cc:
             combined[word] = [frequency, int(round(cc[word] * len_ratio))]
             ct += 1
             if ct == top_n_words:
                 break
-
     a, e = [], []
     for word, freqs in combined.items():
         a.append(freqs[0])
@@ -36,7 +28,7 @@ def compare_stop_words_against_other_texts(sample_tokens, comparison_tokens, sam
     return chisquare(f_obs=a, f_exp=e)
 
 
-def compare_stop_word_usage(tokens, sample_size, absolute, top_n_words, method=0):
+def compare_stop_word_usage(tokens, sample_size, top_n_words, method=0):
     """
     :param tokens: Num
     :param sample_size: number of tokens or percentage of text to sample
@@ -47,8 +39,6 @@ def compare_stop_word_usage(tokens, sample_size, absolute, top_n_words, method=0
     # method to test a random set of words against the expected counts
     #   of those words across the entire text, controlling for chunk size.
     if method == 0:
-        if not absolute and sample_size >= 1:
-            sys.exit('Invalid sample size specified for simulation without --absolute applied')
         sc = Counter(npr.choice(tokens, int(len(tokens) * sample_size), replace=False, p=None))
         fc = [list(t) for t in Counter(tokens).most_common(20)]
         a, e = [], []
@@ -59,11 +49,8 @@ def compare_stop_word_usage(tokens, sample_size, absolute, top_n_words, method=0
     #  and from the same text against each other
     elif method == 1:
         randomized = [t for t in tokens]
-        if (not absolute and sample_size > 0.5) or (absolute and sample_size > len(tokens)/2):
-            # this logic should be handled further up, RE validating arguments
-            pass
         # set break as either a a fixed or relative number of tokens
-        br = int(sample_size) if absolute else int(len(randomized) // (1/sample_size))
+        br = int(len(randomized) // (1/sample_size))
         npr.shuffle(randomized)
         bag1, bag2 = randomized[0:br], randomized[br:br*2]
         c1, c2 = Counter(bag1).most_common(), Counter(bag2)

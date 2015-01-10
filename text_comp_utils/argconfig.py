@@ -22,11 +22,6 @@ def read_configuration_options():
         help='Percent of text to sample'
     )
     parser.add_argument(
-        '--absolute',
-        action='store_true',
-        help='Whether sample is an absolute number of words to sample or a percentage'
-    )
-    parser.add_argument(
         '--verbose',
         action='store_true',
         help='Output more text'
