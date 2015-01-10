@@ -6,7 +6,7 @@ import sys
 import numpy.random as npr
 
 
-def compare_stop_words_against_other_texts(sample_tokens, comparison_tokens, sample_size, top_n_words, absolute):
+def compare_stop_words_against_other_texts(sample_tokens, comparison_tokens, sample_size, top_n_words):
     if len(sample_tokens) >= len(comparison_tokens):
         sample_count = int(round(len(comparison_tokens) * sample_size))
     elif len(comparison_tokens) > len(sample_tokens):
@@ -15,7 +15,8 @@ def compare_stop_words_against_other_texts(sample_tokens, comparison_tokens, sam
     cc = Counter(npr.choice(comparison_tokens, sample_count, replace=False, p=None))
     len_ratio = len(sc) / len(cc)
     combined = {}
-    ct = 0    for word, frequency in sc:
+    ct = 0
+    for word, frequency in sc:
         if word in cc:
             combined[word] = [frequency, int(round(cc[word] * len_ratio))]
             ct += 1
@@ -73,7 +74,7 @@ def compare_stop_word_usage(tokens, sample_size, top_n_words, method=0):
         sys.exit('Invalid method flag supplied')
     return chisquare(f_obs=a, f_exp=e)
 
-
+### DEPRECATED - STOP TOUCHING
 def test_stop_word_usage_against_sample(sample_1, sample_2):
     s1_common = Counter(sample_1).most_common(20)
     s2_common = Counter(sample_2).most_common(20)
