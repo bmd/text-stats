@@ -1,29 +1,47 @@
 ### DUMP THIS INTO IPYTHON ####
 # do imports first
 import pandas as pd
+import glob
 import numpy as np
 import matplotlib.pyplot as plt
+import os
+import sys
+from ggplot import *
 
 # get data loaded into iPython
-results_file = '2014-09-07-16-08-41_test.csv'
-df = pd.read_csv(results_file, index_col = 0)
+most_recent_results = max(glob.glob(os.path.join('outputs', '*.csv')))
+df = pd.read_csv(most_recent_results, index_col = 0)
 
-# plot a kde of chi2 distributions for the entire data frame
-res = df.plot(kind='kde',
-    title='Chi2 Statistic Comparison for 5 Vita\n10,000 iterations; sample size 50%',
-    figsize=(15,5),
-    xlim=(0,200)
-    )
-res.set_xlabel('Chi2 Statistic')
+df2 = pd.melt(df2)
 
-# plot a set of histograms, aligning axes
-res = pd.DataFrame.hist(df,
-    layout=(5, 1),
-    alpha=0.75,
-    bins=[x for x in range(0, 200,5)],
-    figsize=(10, 30),
-    sharex=True,
-    sharey=True
-    )
-res.set_xlabel('Chi2 Statistic')
+# plot all self-vs-self comparisons
+ggplot(
+    aes(
+        x='value',
+        colour='variable'
+    ),
+    data=df
+) + \
+geom_density(
+    aes(
+        fill=True,
+        alpha=0.1
+    ),
+    trim=False
+)
+#plot the avg curve
 
+ggplot() + geom_density()
+ggplot(aes(x='value'), data=df2) + geom_density(aes(x='value', data=df2, fill=True, alpha=0.1), trim=False)
+
+
+
+ggplot(aes(x='Chi2 Statistic', colour='Comparison Text'), data=df) + geom_density(aes(fill=True, alpha=0.1), trim=False)
+
+plt = ggplot(aes(x='Chi2 Statistic'), data=df)
+plt = plt + geom_density(aes(fill=True, alpha=0.1), trim=False)
+plt = plt + geom_density(aes(x='value'), fill=True, alpha=0.1, data=df2, trim=False)
+plt + geom_density(aes(x='Chi2 Statistic', colour='Comparison Text'), data=df3, fill=True, alpha=0.1, trim=False)
+
+
+ggplot(aes(x='Chi2 Statistic', colour='Base Text'), data=df3) + geom_density()
