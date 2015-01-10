@@ -8,8 +8,13 @@ def read_configuration_options():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         'iterations',
-        type=str,
+        type=int,
         help='Number of times to run the simulation for each text.'
+    )
+    parser.add_argument(
+        'stopwords',
+        type=int,
+        help='Use top N words of text 1'
     )
     parser.add_argument(
         'sample',
