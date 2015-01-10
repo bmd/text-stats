@@ -6,22 +6,37 @@ import sys
 import numpy.random as npr
 
 
-def compare_stop_words_against_other_texts(sample_tokens, comparison_tokens):
-    sc = Counter(sample_tokens).most_common()
-    fc = Counter(comparison_tokens)
+def compare_stop_words_against_other_texts(sample_tokens, comparison_tokens, sample_size, top_n_words, absolute):
+    if len(sample_tokens) >= len(comparison_tokens):
+        sample_count = int(round(len(comparison_tokens) * sample_size))
+    elif len(comparison_tokens) > len(sample_tokens):
+        sample_count = int(round(len(sample_tokens) * sample_size))
+
+    sc = Counter(npr.choice(sample_tokens, sample_count, replace=False, p=None)).most_common()
+    cc = Counter(npr.choice(comparison_tokens, sample_count, replace=False, p=None))
+
+    #sc = Counter(sample_tokens).most_common()
+    #cc = Counter(comparison_tokens)
+
+    len_ratio = len(sc) / len(cc)
+
     combined = {}
     ct = 0
     for word, frequency in sc:
-        if word in c2:
-            combined[word] = [frequency, c2[word]]
+        if word in cc:
+            combined[word] = [frequency, int(round(cc[word] * len_ratio))]
             ct += 1
-            if ct == 20:
+            if ct == top_n_words:
                 break
-        else:
-            pass
+
+    a, e = [], []
+    for word, freqs in combined.items():
+        a.append(freqs[0])
+        e.append(freqs[1])
+    return chisquare(f_obs=a, f_exp=e)
 
 
-def compare_stop_word_usage(tokens, sample_size, absolute, method=0):
+def compare_stop_word_usage(tokens, sample_size, absolute, top_n_words, method=0):
     """
     :param tokens: Num
     :param sample_size: number of tokens or percentage of text to sample
@@ -58,7 +73,7 @@ def compare_stop_word_usage(tokens, sample_size, absolute, method=0):
             if word in c2:
                 combined[word] = [frequency, c2[word]]
                 ct += 1
-                if ct == 20:
+                if ct == top_n_words:
                     break
             else:
                 pass

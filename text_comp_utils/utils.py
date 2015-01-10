@@ -33,7 +33,6 @@ def depunctuate(text):
 def tokenize(s):
     return [x.lower() for x in s.split(' ') if x != '']
 
-
 def summarize_results(r, statistic, p_sig=False):
     m, s = np.mean(r), np.std(r)
     print ' - Mean {} value: {:.3f}'.format(statistic, m)
