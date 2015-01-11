@@ -3,7 +3,7 @@ import argparse
 
 def read_configuration_options():
     """
-    Set up and validate command line arguments
+    Set up and validate command line arguments.
     """
     parser = argparse.ArgumentParser()
     parser.add_argument(
