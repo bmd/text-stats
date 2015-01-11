@@ -22,6 +22,12 @@ def read_configuration_options():
         help='Percent of text to sample'
     )
     parser.add_argument(
+        'method',
+        type=str,
+        choices=['chisquare','gtest'],
+        help='Statistical test for generating results'
+    )
+    parser.add_argument(
         '--verbose',
         action='store_true',
         help='Output more text'
