@@ -22,13 +22,12 @@ def timestamped(fname, fmt='%Y%m%d-%H%M%S_{fname}'):
 def ensure_output_directory(outdir_path):
     if not os.path.exists(outdir_path):
         print 'Created output directory...'
-        os.mkdir(os.path.dirname(outdir_path))
+        os.mkdir(outdir_path)
     return outdir_path
 
 
 def set_up_results_directory(results_path, iterations):
-    base_name = 'outputs_{}_iterations'.format(iterations)
-    results_directory = timestamped(base_name)
+    results_directory = timestamped('outputs_{}_iterations'.format(iterations))
     res_dir = os.path.join(results_path, results_directory)
     os.mkdir(res_dir)
     return res_dir
