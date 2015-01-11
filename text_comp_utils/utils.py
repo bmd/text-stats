@@ -44,7 +44,7 @@ def collect_project_files(base_dir):
         for i, path in enumerate(texts):
             texts[i] = {
                 'path': path,
-                'proper': path.split('/')[-1].replace('.txt','').replace('_', ' ')
+                'proper': path.split('/')[-1].replace('.txt', '').replace('_', ' ')
             }
         return texts
 
@@ -83,5 +83,5 @@ def summarize_results(r, statistic, p_sig=False):
         )
     else:
         print ' - 90-percent CI: ({:.2f}, {:.2f})'.format(
-            max(m-(1.67*s),0), m+(1.67*s)
+            max(m-(1.67*s), 0), m+(1.67*s)
         )
