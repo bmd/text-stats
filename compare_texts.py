@@ -16,7 +16,7 @@ def main():
     """
     args = read_configuration_options()
     ensure_output_directory(OUTDIR)
-    res_dir = set_up_results_directory(OUTDIR, args.iterations)
+    res_dir = set_up_results_directory(OUTDIR, args.iterations, args.method)
 
     trial_texts, praiectus_sections = collect_project_files(DIR)
     print 'Found {} trial texts to test.'.format(len(trial_texts))

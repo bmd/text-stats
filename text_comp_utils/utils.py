@@ -26,8 +26,8 @@ def ensure_output_directory(outdir_path):
     return outdir_path
 
 
-def set_up_results_directory(results_path, iterations):
-    results_directory = timestamped('outputs_{}_iterations'.format(iterations))
+def set_up_results_directory(results_path, iterations, method):
+    results_directory = timestamped('outputs_{}_iterations_{}'.format(iterations, method))
     res_dir = os.path.join(results_path, results_directory)
     os.mkdir(res_dir)
     return res_dir
