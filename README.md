@@ -14,3 +14,7 @@
 ``` methods ``` : (chisquare|gtest) - statistical test to use for determining text similarity.
 
 ``` --verbose ```: output additional descriptive and monitoring text during execution.
+
+
+#### Running Curve Overlap Script
+Before running the script, modify the BASE_DIR variable to actually be the base directory from which you're going to run the script. Then do ``` Rscript overlap_summary_analysis.r ```, assuming your outputs are correctly set up.
