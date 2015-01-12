@@ -1,7 +1,6 @@
-library(sfsmisc)
-setwd('~/Dropbox/GIT Projects/text-stats/outputs/20150111-193235_outputs_10000_iterations_chisquare/')
-
 kde_overlap <- function(a, b) {
+	library(sfsmisc)
+	
 	# ensure that kernels are calculated along a common scale
 	lower <- min(c(a, b)) - 1
 	upper <- max(c(a, b)) + 1
@@ -22,7 +21,3 @@ kde_overlap <- function(a, b) {
 	return(intersection/total)
 }
 
-df <- read.csv('text_vs_others_comparisons.csv', header=TRUE)
-df2 <- read.csv('self_vs_self_comparisons.csv', header=TRUE)
-
-kde_overlap(df$Chi2.Statistic, df2$Chi2.Statistic)
