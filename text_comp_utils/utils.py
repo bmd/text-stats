@@ -29,8 +29,8 @@ def ensure_output_directory(outdir_path):
     return outdir_path
 
 
-def set_up_results_directory(results_path, iterations, method):
-    results_directory = timestamped('outputs_{}_iterations_{}'.format(iterations, method))
+def set_up_results_directory(results_path, iterations, stopwords, percent, method):
+    results_directory = timestamped('IT{}_SW{}_PCT{}_{}'.format(iterations, stopwords, int(round(percent * 100)), method))
     res_dir = os.path.join(results_path, results_directory)
     os.mkdir(res_dir)
     return res_dir
