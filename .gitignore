@@ -9,4 +9,5 @@ Icon
 .idea
 Icon
 outputs/*
+stats-env
 >>>>>>> FETCH_HEAD
