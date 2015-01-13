@@ -1,24 +1,10 @@
-library(sfsmisc)
-library(stringr)
-
 # set environments
 BASE_DIR = '~/git/text-stats/outputs'
 setwd(BASE_DIR)
 
-# function to calculate KDE overlaps
+# import functions
 source('../r_src/calculate_kde_overlaps.r')
-
-# pattern match to extract iterations and stopword data, etc
-determine_simulation_parameters_from_file_name <- function (name) {
-	library(stringr)
-	
-	# define regex
-	expr <- '[0-9]{8}-[0-9]{6}_IT([0-9]+)_SW([0-9]+)_PCT([0-9]+)_(.*)'
-	# extract matches 
-	matches <- str_match_all(name, expr)
-	
-	return (unlist(matches))
-}
+source('../r_src/utils.r')
 
 # get all the directories contained in outputs
 results_directories <- dir(path='.')
@@ -39,7 +25,7 @@ for (d in results_directories) {
 	overlap_pct = CalculateKDEOverlap(t$Chi2.Statistic, s$Chi2.Statistic)
 	
 	# parse simulation parameters for categorical values
-	parameters <- determine_simulation_parameters_from_file_name(d)	
+	parameters <- ListRegexMatches(d, '[0-9]{8}-[0-9]{6}_IT([0-9]+)_SW([0-9]+)_PCT([0-9]+)_(.*)')	
 	parameters[[length(parameters)+1]] <- overlap_pct
 
 	# return result

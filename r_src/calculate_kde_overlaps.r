@@ -17,18 +17,17 @@ CalculateKDEOverlap <- function(a, b) {
 	upper <- max(c(a, b)) + 1
 	
 	# generate kernel densities
-	da <- density(a, from = 0, to = upper)
-	db <- density(b, from = 0, to = upper)
-	d <- data.frame(x=da$x, a=da$y, b=db$y)
+	da  <- density(a, from = 0, to = upper)
+	db  <- density(b, from = 0, to = upper)
+	d   <- data.frame(x = da$x, a = da$y, b = db$y)
 	d$w <- pmin(d$a, d$b)  # model overlapping region 
 	
 	# integrate
 	area.under.da <- integrate.xy(d$x, d$a)
 	area.under.db <- integrate.xy(d$x, d$b)
-	intersection <- integrate.xy(d$x, d$w)
+	intersection  <- integrate.xy(d$x, d$w)
 
-
-	# return % of each curve overlapping
+	# return overlapping curve area
 	return((2 * intersection) / (area.under.da + area.under.db))
 }
 
