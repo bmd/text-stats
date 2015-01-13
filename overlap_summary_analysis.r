@@ -36,7 +36,7 @@ for (d in results_directories) {
 	# calculate per-curve overlap %:
 	# because the area under both curves is 1, this overlap = % overlap.
 	# 2* this result gets the total overlap area (area under both curves)  
-	overlap_pct = kde_overlap(t$Chi2.Statistic, s$Chi2.Statistic)
+	overlap_pct = CalculateKDEOverlap(t$Chi2.Statistic, s$Chi2.Statistic)
 	
 	# parse simulation parameters for categorical values
 	parameters <- determine_simulation_parameters_from_file_name(d)	

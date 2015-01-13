@@ -1,23 +1,34 @@
-kde_overlap <- function(a, b) {
+CalculateKDEOverlap <- function(a, b) {
+	# Estimates the overlapping area between the kernel density
+	# functions calculated on two vectors.
+	#
+	# Args:
+	#   a: A vector without missing values from which a kernel
+	#      density estimate can be produced.
+	#   b: A vector without missing values from which a kernel
+	#      density estimate can be produced.
+	#
+	# Returns:
+	#   The shared area between the kernel density functions
+	#   of a and b. 
 	library(sfsmisc)
 	
 	# ensure that kernels are calculated along a common scale
-	lower <- min(c(a, b)) - 1
 	upper <- max(c(a, b)) + 1
 	
 	# generate kernel densities
-	da <- density(a, from=lower, to=upper)
-	db <- density(b, from=lower, to=upper)
+	da <- density(a, from = 0, to = upper)
+	db <- density(b, from = 0, to = upper)
 	d <- data.frame(x=da$x, a=da$y, b=db$y)
-	
-	# calculate intersection densities
-	d$w <- pmin(d$a, d$b)
+	d$w <- pmin(d$a, d$b)  # model overlapping region 
 	
 	# integrate
-	total <- integrate.xy(d$x, d$a) + integrate.xy(d$x, d$b)
+	area.under.da <- integrate.xy(d$x, d$a)
+	area.under.db <- integrate.xy(d$x, d$b)
 	intersection <- integrate.xy(d$x, d$w)
-	
+
+
 	# return % of each curve overlapping
-	return(intersection/total)
+	return((2 * intersection) / (area.under.da + area.under.db))
 }
 
