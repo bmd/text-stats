@@ -28,6 +28,12 @@ def read_configuration_options():
         help='Statistical test for generating results'
     )
     parser.add_argument(
+        '--stem',
+        type=str,
+        choices=['naive','schinke'],
+        help='Choose a method for stemming tokens in source texts'
+    )
+    parser.add_argument(
         '--verbose',
         action='store_true',
         help='Output more text'
