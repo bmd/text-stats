@@ -5,6 +5,7 @@ import pyprind
 from text_comp_utils.utils import *
 from text_comp_utils.argconfig import *
 from text_comp_utils.usage_tests import *
+from text_comp_utils.parsing import *
 
 DIR = 'texts'
 OUTDIR = 'outputs'
@@ -32,8 +33,8 @@ def main():
 
     for f in trial_texts:
         print 'Testing text "{proper}"...'.format(**f)
-        tokens = tokenize(depunctuate(ingest(f['path'])))
-        chunk_size = int(len(tokens)*args.sample)
+        tokens = strip_enclitic_que(tokenize(depunctuate(ingest(f['path']))), strip=args.strip_que)
+        chunk_size = int(len(tokens) * args.sample)
         if args.verbose:
             print '  - Interpreted {} word-tokens'.format(len(tokens))
             print '  - Sample based on {} words ({:.0%} of full text)'.format(chunk_size, args.sample)
@@ -56,8 +57,8 @@ def main():
         cmp_texts = [t for t in trial_texts if t['path'] != f['path']]
         for j in cmp_texts:
             print 'Comparing {} to {}'.format(f['proper'], j['proper'])
-            base_text_tokens = tokenize(depunctuate(ingest(f['path'])))
-            cmp_text_tokens = tokenize(depunctuate(ingest(j['path'])))
+            base_text_tokens = strip_enclitic_que(tokenize(depunctuate(ingest(f['path']))), strip=args.strip_que)
+            cmp_text_tokens = strip_enclitic_que(tokenize(depunctuate(ingest(j['path']))), strip=args.strip_que)
             if args.verbose:
                 prbar = pyprind.ProgBar(int(args.iterations), stream=sys.stdout)
             for x in xrange(args.iterations):
@@ -78,8 +79,8 @@ def main():
     for f in praiectus_sections:
         cmp_sections = [ps for ps in praiectus_sections if ps['path'] != f['path']]
         for c in cmp_sections:
-            section_1_tokens = tokenize(depunctuate(ingest(f['path'])))
-            section_2_tokens = tokenize(depunctuate(ingest(c['path'])))
+            section_1_tokens = strip_enclitic_que(tokenize(depunctuate(ingest(f['path']))), strip=args.strip_que)
+            section_2_tokens = strip_enclitic_que(tokenize(depunctuate(ingest(c['path']))), strip=args.strip_que)
             if args.verbose:
                 prbar = pyprind.ProgBar(int(args.iterations), stream=sys.stdout)
             for x in xrange(args.iterations):

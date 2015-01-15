@@ -24,14 +24,19 @@ def read_configuration_options():
     parser.add_argument(
         'method',
         type=str,
-        choices=['chisquare','gtest'],
+        choices=['chisquare', 'gtest'],
         help='Statistical test for generating results'
     )
     parser.add_argument(
         '--stem',
         type=str,
-        choices=['naive','schinke'],
-        help='Choose a method for stemming tokens in source texts'
+        choices=['naive', 'schinke'],
+        help='Choose a method for stemming tokens in source texts. NOT IMPLEMENTED'
+    )
+    parser.add_argument(
+        '--strip-que',
+        action='store_true',
+        help='Strip the enclitic que and treat it as a separate stopword'
     )
     parser.add_argument(
         '--verbose',

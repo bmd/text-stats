@@ -11,3 +11,5 @@ Icon
 outputs/*
 stats-env
 >>>>>>> FETCH_HEAD
+
+.Rapp.history
