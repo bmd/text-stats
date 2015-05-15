@@ -24,7 +24,7 @@ def main():
     if args.verbose:
         for x in trial_texts:
             print '  - {proper}: {path}'.format(**x)
-
+    """
     ###############################
     # DO SELF VS SELF COMPARISONS #
     ###############################
@@ -69,7 +69,7 @@ def main():
                     prbar.update()
                 text_vs_others_results.append([f['proper'], j['proper'], chi2])
     write_output_file(res_dir, text_vs_others_results, 'text_vs_others_comparisons.csv')
-
+    """
     ######################################
     # DO PRAIECTUS VS OTHERS COMPARISONS #
     ######################################
@@ -77,7 +77,8 @@ def main():
     print 'Comparing Suspected Praiectus Sections against Each Other'
     praiectus_comparisons = [['Base Section', 'Comparison Section', 'Chi2 Statistic']]
     for f in praiectus_sections:
-        cmp_sections = [ps for ps in praiectus_sections if ps['path'] != f['path']]
+        #cmp_sections = [ps for ps in praiectus_sections if ps['path'] != f['path']]
+        cmp_sections = [ps for ps in praiectus_sections]
         for c in cmp_sections:
             section_1_tokens = strip_enclitic_que(tokenize(depunctuate(ingest(f['path']))), strip=args.strip_que)
             section_2_tokens = strip_enclitic_que(tokenize(depunctuate(ingest(c['path']))), strip=args.strip_que)

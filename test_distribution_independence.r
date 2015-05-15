@@ -11,7 +11,15 @@ s <- read.csv('~/git/text-stats/outputs/current_outputs/self_vs_self_comparisons
 
 p1.vs.p3 <- p[p$Base.Section == 'praiectus 3' & p$Comparison.Section == 'praiectus 1',]
 p1.vs.p2 <- p[p$Base.Section == 'praiectus 2' & p$Comparison.Section == 'praiectus 1',]
-p2 <- p[p$Base.Section == 'praiectus 3' & p$Comparison.Section == 'praiectus 2',]
+p2.vs.p3 <- p[p$Base.Section == 'praiectus 3' & p$Comparison.Section == 'praiectus 2',]
+
+
+wilcox.test(s$Chi2.Statistic, t$Chi2.Statistic)
+wilcox.test(s$Chi2.Statistic, p1.vs.p2$Chi2.Statistic)
+wilcox.test(s$Chi2.Statistic, p1.vs.p3$Chi2.Statistic)
+wilcox.test(s$Chi2.Statistic, p2.vs.p3$Chi2.Statistic)
+wilcox.test(p1.vs.p2$Chi2.Statistic, t$Chi2.Statistic)
+
 
 ks.test(p1.vs.p3$Chi2.Statistic, t$Chi2.Statistic, alternative = 'two.sided')
 

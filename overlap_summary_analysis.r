@@ -16,8 +16,7 @@ output <- rbind(output, c('Folder Name', 'Iterations', 'Stopwords', 'Sample Size
 # iterate over all sets of results in the results directory
 for (d in results_directories) {
   # load data
-  t <- read.csv(file.path(d, 'text_vs_others_comparisons.csv'))
-  s <- read.csv(file.path(d, 'self_vs_self_comparisons.csv'))
+  p <- read.csv(file.path(d, 'praiectus_section_comparisons.csv'))
 	
   # calculate the % overlapping area between the two curves
   overlap_pct <- CalculateKDEOverlap(t$Chi2.Statistic, s$Chi2.Statistic)
