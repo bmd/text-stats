@@ -4,6 +4,12 @@ import argparse
 def configure_args():
     """
     Set up and validate command line arguments.
+
+    Returns
+    -------
+    An argrparse.parser object with the user-specified
+    arguments.
+
     """
     parser = argparse.ArgumentParser()
     parser.add_argument(
