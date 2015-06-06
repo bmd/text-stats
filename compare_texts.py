@@ -55,36 +55,9 @@ class OutputManager(object):
         df.to_csv(self.output_final_directory)
 
 
-def calculate_curve_overlap_without_test_object(k, l, xmax=500):
-    def y_min(pt):
-        return min(k.evaluate(pt), l.evaluate(pt))
-
-    overlap = integrate.quad(y_min, 0, xmax)[0]
 
 
-def find_intersection(fun1, fun2, x0):
-    return optimize.fsolve(lambda x: fun1(x) - fun2(x), x0, full_output=True, factor=1)
 
-
-def calculate_curve_overlap(t1, t2):
-    """ Calculate the overlapping area between two PDFs
-    :param t1:
-    :param t2:
-    :return:
-    """
-    def y_min(pt):
-        return min(t1.kernel(pt), t2.kernel(pt))
-
-    overlap = integrate.quad(y_min, 0, max(t2.results + t1.results))
-
-    return overlap[0]
-
-
-def plot_kernel_density(test):
-    density = test.kernel
-    x_values = np.linspace(0, max(test.results), 500)
-    plt.plot(x_values, density.evaluate(x_values))
-    plt.show()
 
 
 def main():
