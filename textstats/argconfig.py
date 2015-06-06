@@ -1,7 +1,7 @@
 import argparse
 
 
-def read_configuration_options():
+def configure_args():
     """
     Set up and validate command line arguments.
     """
@@ -20,12 +20,6 @@ def read_configuration_options():
         'sample',
         type=float,
         help='Percent of text to sample'
-    )
-    parser.add_argument(
-        'method',
-        type=str,
-        choices=['chisquare', 'gtest'],
-        help='Statistical test for generating results'
     )
     parser.add_argument(
         '--stem',
