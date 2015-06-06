@@ -1,99 +1,147 @@
 from __future__ import division
 
-import pyprind
+import datetime
+import itertools
+import os
 
-from text_comp_utils.utils import *
-from text_comp_utils.argconfig import *
-from text_comp_utils.usage_tests import *
-from text_comp_utils.parsing import *
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy import integrate, optimize, stats
 
-DIR = 'texts'
-OUTDIR = 'outputs'
+from textstats import configure_args, Corpus, SelfVsSelfTest, SelfVsOtherTest
+
+
+class OutputManager(object):
+
+    def __init__(self, output_directory='outputs'):
+        """
+
+        :param output_directory:
+        :param output_directory:
+        :return:
+        """
+        if not os.path.exists(output_directory):
+            os.mkdir(output_directory)
+
+        self.output_base_directory = output_directory
+
+    def setup(self, iterations, stopwords, percent, method):
+        """
+
+        :param iterations:
+        :param stopwords:
+        :param percent:
+        :param method:
+        :return:
+        """
+        def timestamped(f, fmt='%Y%m%d-%H%M%S_{fname}'):
+            return datetime.datetime.now().strftime(fmt).format(fname=f)
+
+        results_directory = timestamped('IT{}_SW{}_PCT{}_{}'.format(iterations, stopwords, int(round(percent * 100)), method))
+        self.output_final_directory = os.path.join(self.output_base_directory, results_directory)
+
+        os.mkdir(self.output_final_directory)
+
+        return self
+
+    def write_output(self, data):
+        """
+
+        :param data:
+        :return:
+        """
+        import pandas as pd
+        df = pd.DataFrame(data[1:], columns=data[0])
+        df.to_csv(self.output_final_directory)
+
+
+def calculate_curve_overlap_without_test_object(k, l, xmax=500):
+    def y_min(pt):
+        return min(k.evaluate(pt), l.evaluate(pt))
+
+    overlap = integrate.quad(y_min, 0, xmax)[0]
+
+
+def find_intersection(fun1, fun2, x0):
+    return optimize.fsolve(lambda x: fun1(x) - fun2(x), x0, full_output=True, factor=1)
+
+
+def calculate_curve_overlap(t1, t2):
+    """ Calculate the overlapping area between two PDFs
+    :param t1:
+    :param t2:
+    :return:
+    """
+    def y_min(pt):
+        return min(t1.kernel(pt), t2.kernel(pt))
+
+    overlap = integrate.quad(y_min, 0, max(t2.results + t1.results))
+
+    return overlap[0]
+
+
+def plot_kernel_density(test):
+    density = test.kernel
+    x_values = np.linspace(0, max(test.results), 500)
+    plt.plot(x_values, density.evaluate(x_values))
+    plt.show()
 
 
 def main():
-    """ Setup
-    Set program configurations and identify texts for analysis
-    """
-    args = read_configuration_options()
-    ensure_output_directory(OUTDIR)
-    res_dir = set_up_results_directory(OUTDIR, args.iterations, args.stopwords, args.sample, args.method)
+    args = configure_args()
 
-    trial_texts, praiectus_sections = collect_project_files(DIR)
-    print 'Found {} trial texts to test.'.format(len(trial_texts))
-    if args.verbose:
-        for x in trial_texts:
-            print '  - {proper}: {path}'.format(**x)
-    """
-    ###############################
-    # DO SELF VS SELF COMPARISONS #
-    ###############################
-    print 'Comparing each text against a sample of its own words'
-    text_vs_self_results = [['Text', 'Chi2 Statistic']]
+    output = OutputManager().setup(args.iterations, args.stopwords, args.sample, args.method)
 
-    for f in trial_texts:
-        print 'Testing text "{proper}"...'.format(**f)
-        tokens = strip_enclitic_que(tokenize(depunctuate(ingest(f['path']))), strip=args.strip_que)
-        chunk_size = int(len(tokens) * args.sample)
-        if args.verbose:
-            print '  - Interpreted {} word-tokens'.format(len(tokens))
-            print '  - Sample based on {} words ({:.0%} of full text)'.format(chunk_size, args.sample)
-        if args.verbose:
-            prbar = pyprind.ProgBar(int(args.iterations), stream=sys.stdout)
-        for x in xrange(args.iterations):
-            chi2, p = compare_stop_word_usage(tokens, args.sample, args.stopwords, method=args.method)
-            if args.verbose:
-                prbar.update()
-            text_vs_self_results.append([f['proper'], chi2])
+    corpus = Corpus(corpus_directory='texts')
+    print 'Found {} trial texts to test.'.format(len(corpus.comparison_texts))
 
-    write_output_file(res_dir, text_vs_self_results, 'self_vs_self_comparisons.csv')
+    print 'Loading and tokenizing texts'
+    for txt in corpus.comparison_texts + corpus.praiectus_texts:
+        txt.load_and_tokenize()
 
-    ###############################
-    # DO TEXT VS TEXT COMPARISONS #
-    ###############################
-    print 'Comparing each text against other trial texts'
-    text_vs_others_results = [['Base Text', 'Comparison Text', 'Chi2 Statistic']]
-    for f in trial_texts:
-        cmp_texts = [t for t in trial_texts if t['path'] != f['path']]
-        for j in cmp_texts:
-            print 'Comparing {} to {}'.format(f['proper'], j['proper'])
-            base_text_tokens = strip_enclitic_que(tokenize(depunctuate(ingest(f['path']))), strip=args.strip_que)
-            cmp_text_tokens = strip_enclitic_que(tokenize(depunctuate(ingest(j['path']))), strip=args.strip_que)
-            if args.verbose:
-                prbar = pyprind.ProgBar(int(args.iterations), stream=sys.stdout)
-            for x in xrange(args.iterations):
-                chi2, p = compare_stop_words_against_other_texts(
-                    base_text_tokens, cmp_text_tokens, args.sample, args.stopwords, method=args.method
-                )
-                if args.verbose:
-                    prbar.update()
-                text_vs_others_results.append([f['proper'], j['proper'], chi2])
-    write_output_file(res_dir, text_vs_others_results, 'text_vs_others_comparisons.csv')
-    """
-    ######################################
-    # DO PRAIECTUS VS OTHERS COMPARISONS #
-    ######################################
+    print 'Running Comparisons between texts of Known Different Authorship'
+    test_results = []
+    for t in itertools.permutations(corpus.comparison_texts, 2):
+        test = SelfVsOtherTest(t[0], t[1])
+        test.run_tests(args.iterations)
+        test_results.append(test)
 
-    print 'Comparing Suspected Praiectus Sections against Each Other'
-    praiectus_comparisons = [['Base Section', 'Comparison Section', 'Chi2 Statistic']]
-    for f in praiectus_sections:
-        #cmp_sections = [ps for ps in praiectus_sections if ps['path'] != f['path']]
-        cmp_sections = [ps for ps in praiectus_sections]
-        for c in cmp_sections:
-            section_1_tokens = strip_enclitic_que(tokenize(depunctuate(ingest(f['path']))), strip=args.strip_que)
-            section_2_tokens = strip_enclitic_que(tokenize(depunctuate(ingest(c['path']))), strip=args.strip_que)
-            if args.verbose:
-                prbar = pyprind.ProgBar(int(args.iterations), stream=sys.stdout)
-            for x in xrange(args.iterations):
-                chi2, p = compare_stop_words_against_other_texts(
-                    section_1_tokens, section_2_tokens, args.sample, args.stopwords, method=args.method
-                )
-                if args.verbose:
-                    prbar.update()
-                praiectus_comparisons.append([f['proper'], c['proper'], chi2])
-    write_output_file(res_dir, praiectus_comparisons, 'praiectus_section_comparisons.csv')
+    print 'Plotting Results'
+    for tr in test_results:
+        x_den = np.linspace(0, max(tr.results), 500)
+        plt.plot(x_den, tr.kernel(x_den), 'blue', alpha=0.2)
 
-    return
+    d = list(itertools.chain.from_iterable([tr.results for tr in test_results]))
+    gd = stats.gaussian_kde(d)
+    x_den = np.linspace(0, max(d), 500)
+    plt.plot(x_den, gd(x_den), 'blue')
+
+    print 'Running Self-Comparisons between texts'
+    self_test_results = []
+    for t in corpus.comparison_texts:
+        test = SelfVsSelfTest(t)
+        test.run_tests(args.iterations)
+        self_test_results.append(test)
+
+    print 'Plotting Results'
+    for tr in self_test_results:
+        x_den = np.linspace(0, max(tr.results), 5000)
+        plt.plot(x_den, tr.kernel(x_den), 'red', alpha=0.2)
+
+    d2 = list(itertools.chain.from_iterable([tr.results for tr in self_test_results]))
+    gd2 = stats.gaussian_kde(d2)
+    x_den = np.linspace(0, max(d2), 5000)
+    plt.grid(b=10)
+    plt.plot(x_den, gd2(x_den), 'red')
+
+    print "{:.2f}%".format(calculate_curve_overlap_without_test_object(gd,gd2, xmax=550))
+
+    result = find_intersection(gd, gd2, [0, 70])
+    real_int = result[0][1]
+
+    print integrate.quad(gd, real_int, np.inf)[0]
+    plt.plot(result[0], gd(result[0]), 'ro')
+    plt.show()
 
 
 if __name__ == '__main__':
