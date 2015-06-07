@@ -1,100 +1,35 @@
 from __future__ import division
 
-import pyprind
-
-from text_comp_utils.utils import *
-from text_comp_utils.argconfig import *
-from text_comp_utils.usage_tests import *
-from text_comp_utils.parsing import *
-
-DIR = 'texts'
-OUTDIR = 'outputs'
+from textstats import *
 
 
 def main():
-    """ Setup
-    Set program configurations and identify texts for analysis
-    """
-    args = read_configuration_options()
-    ensure_output_directory(OUTDIR)
-    res_dir = set_up_results_directory(OUTDIR, args.iterations, args.stopwords, args.sample, args.method)
+    args = configure_args()
 
-    trial_texts, praiectus_sections = collect_project_files(DIR)
-    print 'Found {} trial texts to test.'.format(len(trial_texts))
-    if args.verbose:
-        for x in trial_texts:
-            print '  - {proper}: {path}'.format(**x)
-    """
-    ###############################
-    # DO SELF VS SELF COMPARISONS #
-    ###############################
-    print 'Comparing each text against a sample of its own words'
-    text_vs_self_results = [['Text', 'Chi2 Statistic']]
+    output = OutputManager().setup(args.iterations, args.stopwords, args.sample)
 
-    for f in trial_texts:
-        print 'Testing text "{proper}"...'.format(**f)
-        tokens = strip_enclitic_que(tokenize(depunctuate(ingest(f['path']))), strip=args.strip_que)
-        chunk_size = int(len(tokens) * args.sample)
-        if args.verbose:
-            print '  - Interpreted {} word-tokens'.format(len(tokens))
-            print '  - Sample based on {} words ({:.0%} of full text)'.format(chunk_size, args.sample)
-        if args.verbose:
-            prbar = pyprind.ProgBar(int(args.iterations), stream=sys.stdout)
-        for x in xrange(args.iterations):
-            chi2, p = compare_stop_word_usage(tokens, args.sample, args.stopwords, method=args.method)
-            if args.verbose:
-                prbar.update()
-            text_vs_self_results.append([f['proper'], chi2])
+    corpus = Corpus(corpus_directory='texts')
+    print 'Found {} trial texts to test.'.format(len(corpus.comparison_texts))
 
-    write_output_file(res_dir, text_vs_self_results, 'self_vs_self_comparisons.csv')
+    print 'Loading and tokenizing texts'
+    for txt in corpus.comparison_texts + corpus.praiectus_texts:
+        txt.load_and_tokenize()
 
-    ###############################
-    # DO TEXT VS TEXT COMPARISONS #
-    ###############################
-    print 'Comparing each text against other trial texts'
-    text_vs_others_results = [['Base Text', 'Comparison Text', 'Chi2 Statistic']]
-    for f in trial_texts:
-        cmp_texts = [t for t in trial_texts if t['path'] != f['path']]
-        for j in cmp_texts:
-            print 'Comparing {} to {}'.format(f['proper'], j['proper'])
-            base_text_tokens = strip_enclitic_que(tokenize(depunctuate(ingest(f['path']))), strip=args.strip_que)
-            cmp_text_tokens = strip_enclitic_que(tokenize(depunctuate(ingest(j['path']))), strip=args.strip_que)
-            if args.verbose:
-                prbar = pyprind.ProgBar(int(args.iterations), stream=sys.stdout)
-            for x in xrange(args.iterations):
-                chi2, p = compare_stop_words_against_other_texts(
-                    base_text_tokens, cmp_text_tokens, args.sample, args.stopwords, method=args.method
-                )
-                if args.verbose:
-                    prbar.update()
-                text_vs_others_results.append([f['proper'], j['proper'], chi2])
-    write_output_file(res_dir, text_vs_others_results, 'text_vs_others_comparisons.csv')
-    """
-    ######################################
-    # DO PRAIECTUS VS OTHERS COMPARISONS #
-    ######################################
+    print 'Running Comparisons between texts of Known Different Authorship'
+    test_results = []
+    for t in itertools.permutations(corpus.comparison_texts, 2):
+        test = SelfVsOtherTest(t[0], t[1])
+        test.run_tests(args.iterations)
+        test_results.append(test)
 
-    print 'Comparing Suspected Praiectus Sections against Each Other'
-    praiectus_comparisons = [['Base Section', 'Comparison Section', 'Chi2 Statistic']]
-    for f in praiectus_sections:
-        #cmp_sections = [ps for ps in praiectus_sections if ps['path'] != f['path']]
-        cmp_sections = [ps for ps in praiectus_sections]
-        for c in cmp_sections:
-            section_1_tokens = strip_enclitic_que(tokenize(depunctuate(ingest(f['path']))), strip=args.strip_que)
-            section_2_tokens = strip_enclitic_que(tokenize(depunctuate(ingest(c['path']))), strip=args.strip_que)
-            if args.verbose:
-                prbar = pyprind.ProgBar(int(args.iterations), stream=sys.stdout)
-            for x in xrange(args.iterations):
-                chi2, p = compare_stop_words_against_other_texts(
-                    section_1_tokens, section_2_tokens, args.sample, args.stopwords, method=args.method
-                )
-                if args.verbose:
-                    prbar.update()
-                praiectus_comparisons.append([f['proper'], c['proper'], chi2])
-    write_output_file(res_dir, praiectus_comparisons, 'praiectus_section_comparisons.csv')
+    print 'Running Self-Comparisons between texts'
+    self_test_results = []
+    for t in corpus.comparison_texts:
+        test = SelfVsSelfTest(t)
+        test.run_tests(args.iterations)
+        self_test_results.append(test)
 
-    return
-
+    plot_test_results(self_test_results, test_results)
 
 if __name__ == '__main__':
     main()
